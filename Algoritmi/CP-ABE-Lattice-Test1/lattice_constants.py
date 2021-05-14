@@ -6,3 +6,7 @@ G_PRIMITIVE_MATRIX = [[2, 11, 7, 8, 10, 3, 9, 9, 9, 7, 3, 9, 7, 2, 5, 1, 10, 6],
                       [3,  4,  5,  9,  9, 10, 10, 11,  7,  2,  5,  4,  1,  5,  6,  7,  2, 10],
                       [2, 10,  3,  7,  4,  8,  4,  4,  6,  5,  8,  3,  5,  6,  7,  8,  9,  4]]
 
+CONSTANT_SIGMA = 1
+CONSTANT_R = 2
+CONSTANT_LATTICE_DIMENSION_ADDITION = 1
+CONSTANT_SMALL_NORM = 100
