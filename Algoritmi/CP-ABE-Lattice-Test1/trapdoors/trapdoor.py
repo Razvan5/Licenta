@@ -1,10 +1,8 @@
 import numpy
-import scipy
-from references.hsnf.Z_module import row_style_hermite_normal_form
+from sympy import Matrix, linsolve
+from random import randint
 #
-from lattice_constants import *
-import random_prime
-from sampling import randomVectorFromMatrix
+from constants.lattice_constants import *
 
 
 # Approximate Trapdoors for Lattices and
@@ -156,6 +154,19 @@ def hardTrapdoorGenerator(A1, n, m1, m2, l, q):
 
 def hermiteNormalFormAjtaiLattice(A1, m1, q):
     A1 = numpy.array(A1)
+    Q = numpy.matrix([q]*len(A1)).T
+    print("Q:", Q)
+    A1 = numpy.concatenate((A1, Q), axis=1)
+    solution = linsolve(Matrix(A1))
+    substitution_list = []
+    print("SYMPY SOL:", solution)
+    for variable in solution.free_symbols:
+        substitution_list.append((variable, randint(0, q//2)))
+    print("SUBS LIST", substitution_list)
+    print("SYMPY RESULT:", solution.subs(substitution_list))
+    # TODO check this bug V list might be empty
+    sol = [s % q for s in list(solution.subs(substitution_list))[0]]
+    print(f"TRUE SOLUTION MOD {q} =", sol)
     H = numpy.zeros(shape=(m1, m1), dtype=int)
     H[0][0] = 1
     print(H)
@@ -253,3 +264,38 @@ def frameworkTrapdoorGenerator(A1, n, m1, m2, l, q):
     #         print("Z")
     #         print(z)
     #         print(A1)
+
+
+# Based on
+# Bonsai Trees, or How to Delegate a Lattice Basis
+# David Cash?
+# , Dennis Hofheinz??, Eike Kiltz? ? ?, and Chris Peikert†
+
+def extendBasisRight(S_trapdoor, A_original_basis, _A_extension, prime_number):
+    print("ENTERING EXTEND BASE")
+    _A_extension = -_A_extension
+    _A_extension %= prime_number
+    print(_A_extension.T)
+    W = []
+    for column in _A_extension.T:
+        print("Column,", column.T)
+        linear_system = numpy.concatenate((A_original_basis, column.T), axis=1)
+        solution = linsolve(Matrix(linear_system))
+        solution_values = []
+        for var_id in range(0, len(solution.free_symbols)):
+            solution_values.append(("tau" + str(var_id), numpy.random.randint(0, prime_number + 1)))
+        if len(W) == 0:
+            W = numpy.matrix(list(list(solution.subs(solution_values))[0])).T
+        else:
+            W = numpy.concatenate((W, numpy.matrix(list(list(solution.subs(solution_values))[0])).T), axis=1)
+        print("Column for W: \n", numpy.matrix(list(list(solution.subs(solution_values))[0])).T)
+    print("W:\n", W)
+    print("Checking A @ W:\n", A_original_basis @ W)
+    print("Checking Ā:\n", _A_extension)
+    SW = numpy.concatenate((S_trapdoor, W), axis=1)
+    zeroMatrix = numpy.zeros(shape=(W.shape[1], W.shape[0]))
+    identityMatrix = numpy.identity(n=W.shape[1], dtype=int)
+    OI = numpy.concatenate((zeroMatrix, identityMatrix), axis=1)
+    SW_OI = numpy.concatenate((SW, OI), axis=0)
+    print("SW_OI\n", SW_OI)
+    return SW_OI

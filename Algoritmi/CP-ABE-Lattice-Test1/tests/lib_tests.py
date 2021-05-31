@@ -1,11 +1,7 @@
-import references.hsnf.Z_module
-import trapdoor
-import random_prime
-from lattice_constants import *
-from references.hsnf.Z_module import ZmoduleHomomorphism
+from constants.lattice_constants import *
 import math
 import numpy
-from prints_tests import matrix_print
+from tests.prints_tests import matrix_print
 
 # z = references.hsnf.Z_module.row_style_hermite_normal_form(M=[[1, 0, 1],
 #                                                               [1, 1, 3],
@@ -101,9 +97,36 @@ print(linsolve(Matrix([[1, 0, 1, 0, 11],
                        [1, 1, 0, 0, 11],
                        [1, 1, 0, 1, 11]]), [h3, h0, h1, h2]).subs(h3, 5))
 
-
 h4, h3, h2, h1, h0 = symbols('h[4|4], h[3|4], h[2|4], h[1|4], h[0|4]')
 print(linsolve(Matrix([[1, 0, 1, 0, 11],
                        [1, 1, 0, 0, 11],
                        [1, 1, 0, 1, 11]]), [h4, h0, h1, h2, h3]).subs([(h3, 6), (h1, 2)]))
 
+A = numpy.matrix(
+    [[1, 0, 1, 0, 1],
+     [1, 1, 0, 0, 0],
+     [1, 1, 0, 1, 1]])
+_A = numpy.matrix(
+    [[43, 3, -4, 123, -32, 10],
+     [14, 32, 1234, 324, 32, 15],
+     [19, 84, -761, 102, 0, -10]])
+# 4111
+prime_number = 283
+_A = -_A
+_A %= prime_number
+print(_A.T)
+W = []
+for column in _A.T:
+    linear_system = numpy.concatenate((A, column.T), axis=1)
+    solution = linsolve(Matrix(linear_system))
+    solution_values = []
+    for var_id in range(0, len(solution.free_symbols)):
+        solution_values.append(("tau" + str(var_id), numpy.random.randint(0, prime_number + 1)))
+    if len(W) == 0:
+        W = numpy.matrix(list(list(solution.subs(solution_values))[0])).T
+    else:
+        W = numpy.concatenate((W, numpy.matrix(list(list(solution.subs(solution_values))[0])).T), axis=1)
+    print("Column for W: \n", numpy.matrix(list(list(solution.subs(solution_values))[0])).T)
+print("W:\n", W)
+print("Checking A @ W:\n", A@W)
+print("Checking Ā:\n", _A)
